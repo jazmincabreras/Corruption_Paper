@@ -12,8 +12,8 @@ global input "$main\input"
 global data "$main\output\data"
 *global casos_contraloria "$main\casos_contraloria"
 *global matrix_casos "$main\matrix_casos"
-*global excel "$main\excel"
-
+global extra "$main\extra"
+global varnames "$main\extra\varnames"
 
 *==========================================================================
 * BASE CONTRALORIA: CONSTRUCCIÓN DE CUATRO CASOS DE VARIABLES DEPENDIENTES
@@ -397,19 +397,21 @@ observaciones: 22,936
 
 * 5. EXPORTAR LISTAS DE VARIABLES DE CADA UNA DE LAS BASES *
 ************************************************************
+/********************************************************************************
+			PROYECTO CORRUPCIÓN
+********************************************************************************/
 
 * 5.1. Renamu
-use "$renamu/matrix_renamu", clear
+use "$bases/matrix_renamu", clear
 describe, replace
-export excel name varlab using "$nombres/renamu_variables.xlsx", firstrow(variables)
+export excel name varlab using "$varnames/renamu_variables.xlsx", firstrow(variables)
 
 * 5.2. SIAF Final
-use "$siaf/siaf", clear
+use "$bases/matrix_siaf", clear
 describe, replace
-export excel name varlab using "$nombres/siaf_variables.xlsx", firstrow(variables)
+export excel name varlab using "$varnames/siaf_variables.xlsx", firstrow(variables)
 
 * 5.3. Contraloria
-use "$contraloria/datos_panel", clear
+use "$bases/matrix_datospanel", clear
 describe, replace
-export excel name varlab using "$nombres/contraloria_variables.xlsx", firstrow(variables)
-
+export excel name varlab using "$varnames/contraloria_variables.xlsx", firstrow(variables)
