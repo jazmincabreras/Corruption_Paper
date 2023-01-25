@@ -19,9 +19,8 @@ if user == 'dell':
     for file in dataSources:
         call(['cp', file, path+'/input'], shell = True)
         
-# if user == 'Usuario':
-# Completar con la info de Jazmin
-
-
+#if user == 'Usuario':
+#    path = r'C:/Users/Usuario/Desktop/QLAB/GitHub/Corruption_Paper'
+# Completar con datos de Jazmin
 
     
