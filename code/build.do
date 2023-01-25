@@ -7,7 +7,9 @@ cls
 
 set maxvar 10000
 
-global main "C:\Users\Usuario\Desktop\QLAB\GitHub\Corruption_Paper"
+if "`c(username)'" == "dell" global main "C:\Users\dell\Documents\QLAB\Corruption_Paper"
+if "`c(username)'" == "Usuario" global main "C:\Users\Usuario\Desktop\QLAB\GitHub\Corruption_Paper"
+
 global input "$main\input"
 global data "$main\output\data"
 *global casos_contraloria "$main\casos_contraloria"
@@ -22,7 +24,7 @@ global varnames "$main\extra\varnames"
 * (1) contraloría inicial por ubigeo y año inicial del reporte
 *--------------------------------------------------------------
 
-use $input\matrix_datospanel, clear
+use "$input\matrix_datospanel", clear
 
 collapse (first) ubigeo año_in civil penal admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio, by (doc_name)
 rename año_in year
@@ -86,7 +88,7 @@ save "$data/c1", replace
 * (2) contraloría inicial por ubigeo, caso y año inicial del reporte
 *--------------------------------------------------------------------
 
-use $input\matrix_datospanel, clear
+use "$input\matrix_datospanel", clear
 
 collapse (first) año_in civil penal admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio, by (doc_name ubigeo)
 rename año_in year
@@ -149,7 +151,7 @@ save "$data/c2", replace
 * (3) contraloría panel por ubigeo y año
 *----------------------------------------
 
-use $input\matrix_datospanel, clear
+use "$input\matrix_datospanel", clear
 collapse (sum) civil penal admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio, by (ubigeo year)
 /*  variables: 10
 observaciones: 1297  */
@@ -211,7 +213,7 @@ save "$data/c3", replace
 * (4) contraloria panel por ubigeo, año y caso
 *----------------------------------------------
 
-use $input\matrix_datospanel, clear
+use "$input\matrix_datospanel", clear
 keep ubigeo year doc_name penal civil admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio
 /*  variables: 11
 observaciones: 1976  */
