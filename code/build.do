@@ -8,12 +8,11 @@ cls
 set maxvar 10000
 
 if "`c(username)'" == "dell" global main "C:\Users\dell\Documents\QLAB\Corruption_Paper"
+
 if "`c(username)'" == "Usuario" global main "C:\Users\Usuario\Desktop\QLAB\GitHub\Corruption_Paper"
 
 global input "$main\input"
 global data "$main\output\data"
-*global casos_contraloria "$main\casos_contraloria"
-*global matrix_casos "$main\matrix_casos"
 global extra "$main\extra"
 global varnames "$main\extra\varnames"
 
@@ -21,10 +20,10 @@ global varnames "$main\extra\varnames"
 * BASE CONTRALORIA: CONSTRUCCIÓN DE CUATRO CASOS DE VARIABLES DEPENDIENTES
 *==========================================================================
 
-* (1) contraloría inicial por ubigeo y año inicial del reporte
+* (1) contraloría del año inicial del reporte por ubigeo y año
 *--------------------------------------------------------------
 
-use "$input\matrix_datospanel", clear
+use $input\matrix_datospanel, clear
 
 collapse (first) ubigeo año_in civil penal admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio, by (doc_name)
 rename año_in year
@@ -85,10 +84,10 @@ gen monto_corrup2 = monto * corrup_amplia
 save "$data/c1", replace
 
 
-* (2) contraloría inicial por ubigeo, caso y año inicial del reporte
+* (2) contraloría del año inicial del reporte por ubigeo, caso y año
 *--------------------------------------------------------------------
 
-use "$input\matrix_datospanel", clear
+use $input\matrix_datospanel, clear
 
 collapse (first) año_in civil penal admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio, by (doc_name ubigeo)
 rename año_in year
@@ -151,7 +150,7 @@ save "$data/c2", replace
 * (3) contraloría panel por ubigeo y año
 *----------------------------------------
 
-use "$input\matrix_datospanel", clear
+use $input\matrix_datospanel, clear
 collapse (sum) civil penal admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio, by (ubigeo year)
 /*  variables: 10
 observaciones: 1297  */
@@ -210,15 +209,22 @@ gen monto_corrup2 = monto * corrup_amplia
 save "$data/c3", replace
 
 
-* (4) contraloria panel por ubigeo, año y caso
+* (4) contraloria panel por ubigeo, caso y año
 *----------------------------------------------
 
-use "$input\matrix_datospanel", clear
-keep ubigeo year doc_name penal civil admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio
+use $input\matrix_datospanel, clear
+
+gen monto_auditado_promedio = monto_auditado / dif
+gen monto_examinado_promedio = monto_examinado / dif
+gen monto_objeto_promedio = monto_objeto_servicio / dif
+
+drop monto_auditado monto_examinado monto_objeto_servicio
+
+keep ubigeo year doc_name penal civil admin adm_ent adm_pas monto_auditado_promedio monto_examinado_promedio monto_objeto_promedio
 /*  variables: 11
 observaciones: 1976  */
 
-order ubigeo year doc_name penal civil admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio
+order ubigeo year doc_name penal civil admin adm_ent adm_pas monto_auditado_promedio monto_examinado_promedio monto_objeto_promedio
 
 * variable "corrupción intensa"
 gen corrup_intensa = 1 if penal != 0
@@ -251,17 +257,17 @@ label values corrup_amplia frec1
 codebook corrup_amplia
 
 * variable "prueba", que determina si una observacion es AC (Auditoria de cumplimiento) o SCEHPI (Servicio de Control Específico a Hechos de Presunta Irregularidad)
-gen prueba = 1 if (monto_auditado!= . & monto_examinado!= . & monto_objeto_servicio == .)
-replace prueba = 2 if (monto_auditado== . & monto_examinado== . & monto_objeto_servicio!= .)
+gen prueba = 1 if (monto_auditado_promedio!= . & monto_examinado_promedio!= . & monto_objeto_promedio == .)
+replace prueba = 2 if (monto_auditado_promedio== . & monto_examinado_promedio== . & monto_objeto_promedio!= .)
 codebook prueba
 sort prueba
 
 * variable "monto"
-gen monto = monto_auditado if prueba == 1
-replace monto = monto_objeto_servicio if prueba == 2
+gen monto = monto_auditado_promedio if prueba == 1
+replace monto = monto_objeto_promedio if prueba == 2
 
 * variable "monto_"
-gen monto_ = monto_auditado + monto_objeto_servicio
+gen monto_ = monto_auditado_promedio + monto_objeto_promedio
 
 gen per_corrup1 = penal * corrup_intensa
 gen per_corrup2 = civil * corrup_amplia
@@ -272,148 +278,113 @@ save "$data/c4", replace
 
 
 ********************************************************************************
-* NUEVOS DOS CASOS
+* UNIÓN DE LOS CUATRO CASOS CON LAS BASES RENAMU - SIAF
 ********************************************************************************
 
-* (5) contraloría panel por ubigeo y año
-*----------------------------------------
-
-use "$contraloria\datos_panel", clear
-
-gen X = monto_auditado / dif
-gen Y = monto_examinado / dif
-gen Z = monto_objeto_servicio / dif
-
-drop monto_auditado monto_examinado monto_objeto_servicio
-rename (X Y Z) (monto_auditado monto_examinado monto_objeto_servicio)
-
-collapse (sum) civil penal admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio, by (ubigeo year)
-/*  variables: 10
-observaciones: 1297  */
-
-order ubigeo year penal civil admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio
-
-
-* (6) contraloria panel por ubigeo, año y caso
-*----------------------------------------------
-
-use "$contraloria\datos_panel", clear
-
-gen X = monto_auditado / dif
-gen Y = monto_examinado / dif
-gen Z = monto_objeto_servicio / dif
-
-drop monto_auditado monto_examinado monto_objeto_servicio
-rename (X Y Z) (monto_auditado monto_examinado monto_objeto_servicio)
-
-keep ubigeo year doc_name penal civil admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio
-/*  variables: 11
-observaciones: 1976  */
-
-order ubigeo year doc_name penal civil admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio
-
-
-*===========================================
-* UNIÓN DE LAS BASES CON LOS CASOS CREADOS
-*===========================================
-
-* SIAF (gc_funcs, hk_funcs y siaf_final)
-use "$bases/gc_funcs", clear
-merge 1:1 ubigeo year using "$bases/gk_funcs"
-drop _merge
-save "$bases/siaf_gcgk", replace
-use "$bases/siaf_gcgk", clear
-merge 1:1 ubigeo year using "$bases/siaf_final"
-drop _merge
-save "$bases/matrix_siaf", replace
-erase "$bases/siaf_gcgk.dta"
-/*  variables: 
-observaciones:   */
-
 * RENAMU - SIAF
-use "$bases/matrix_renamu", clear
+use $input\matrix_renamu, clear
 rename idmunici ubigeo
-merge 1:1 ubigeo year using "$bases/siaf"
+merge 1:1 ubigeo year using $input\matrix_siaf
 drop _merge
-save "$bases/renamu_siaf", replace
-/*  variables: 
-observaciones:   */
+save $input/matrix_renamu_siaf, replace
+/*  variables: 5,702
+observaciones: 22,250  */
 
-
-
-
-
-
-
-* (1) contraloría inicial por ubigeo y año inicial del reporte
+* (1) contraloría del año inicial del reporte por ubigeo y año
 *--------------------------------------------------------------
-
-
-* 4. CONSTRUCCION DE LAS CUATRO BASES FINALES *
-***********************************************
-
-* 4.1. Caso 1: Contraloría inicial por ubigeo y año
-* -------------------------------------------------
-use "$bp/renamu_siaf", clear
-merge 1:m ubigeo year using "$bp/MATRIX_c1"
+use $input/matrix_renamu_siaf, clear
+merge 1:m ubigeo year using $data/c1
 //drop if _merge != 3
-save "$bf/bf_inicial_c1", replace
-/*
-variables:5,714
-observaciones: 22,255
-*/
+save $data/matrix_c1, replace
+/*  variables: 5,720
+observaciones: 22,255  */
 
 
-* 4.2. Caso 2: Contraloria inicial por ubigeo, año y caso
-* -------------------------------------------------------
-use "$bp/renamu_siaf", clear
-merge 1:m ubigeo year using "$bp/contraloria_inicial_c2"
-save "$bf/bf_inicial_c2", replace
-/*
-variables:5,716
-observaciones: 22,448
-*/
+* (2) contraloría del año inicial del reporte por ubigeo, caso y año
+*--------------------------------------------------------------------
+use $input/matrix_renamu_siaf, clear
+merge 1:m ubigeo year using $data/c2
+//drop if _merge != 3
+save $data/matrix_c2, replace
+/*  variables: 5,721
+observaciones: 22,448  */
 
 
-* 4.3. Caso 3: Contraloria panel por ubigeo y año
-* -----------------------------------------------
-use "$bp/renamu_siaf", clear
-merge 1:m ubigeo year using "$bp/contraloria_panel_c1"
-save "$bf/bf_panel_c1", replace
-/*
-variables:5,714
-observaciones: 22,257
-*/
+* (3) contraloría panel por ubigeo y año
+*----------------------------------------
+use $input/matrix_renamu_siaf, clear
+merge 1:m ubigeo year using $data/c3
+//drop if _merge != 3
+save $data/matrix_c3, replace
+/*  variables: 5,720
+observaciones: 22,257  */
 
 
-* 4.4. Caso 4: Contraloria panel por ubigeo, año y caso
-* -------------------------------------------------------
-use "$bp/renamu_siaf", clear
-merge 1:m ubigeo year using "$bp/contraloria_panel_c2"
-save "$bf/bf_panel_c2", replace
-/*
-variables:5,716
-observaciones: 22,936
-*/
+* (4) contraloria panel por ubigeo, caso y año
+*----------------------------------------------
+use $input/matrix_renamu_siaf, clear
+merge 1:m ubigeo year using $data/c4
+//drop if _merge != 3
+save $data/matrix_c4, replace
+/*  variables: 5,721
+observaciones: 22,257  */
+
+erase $input/matrix_renamu_siaf.dta
+erase $data/c1.dta
+erase $data/c2.dta
+erase $data/c3.dta
+erase $data/c4.dta
 
 
-* 5. EXPORTAR LISTAS DE VARIABLES DE CADA UNA DE LAS BASES *
-************************************************************
-/********************************************************************************
-			PROYECTO CORRUPCIÓN
-********************************************************************************/
+********************************************************************************
+* EXPORTAR LISTAS DE VARIABLES DE CADA UNA DE LAS BASES
+********************************************************************************
 
-* 5.1. Renamu
-use "$bases/matrix_renamu", clear
+* RENAMU
+use "$input/matrix_renamu", clear
 describe, replace
 export excel name varlab using "$varnames/renamu_variables.xlsx", firstrow(variables)
 
-* 5.2. SIAF Final
-use "$bases/matrix_siaf", clear
+* SIAF FINAL
+use "$input/matrix_siaf", clear
 describe, replace
 export excel name varlab using "$varnames/siaf_variables.xlsx", firstrow(variables)
 
-* 5.3. Contraloria
-use "$bases/matrix_datospanel", clear
+* CONTRALORIA
+use "$input/matrix_datospanel", clear
 describe, replace
 export excel name varlab using "$varnames/contraloria_variables.xlsx", firstrow(variables)
+
+
+********************************************************************************
+* IETOOLKIT
+********************************************************************************
+
+ssc install iefieldkit
+
+global iecodebook "$main\extra\iecodebook"
+
+
+* (1) contraloría del año inicial del reporte por ubigeo y año
+*--------------------------------------------------------------
+use $data/matrix_c1, clear
+iecodebook template using "$iecodebook\cleaning_c1.xlsx", replace
+iecodebook apply using "$iecodebook\cleaning_c1.xlsx"
+
+* (2) contraloría del año inicial del reporte por ubigeo, caso y año
+*--------------------------------------------------------------------
+use $data/matrix_c2, clear
+iecodebook template using "$iecodebook\cleaning_c2.xlsx", replace
+iecodebook apply using "$iecodebook\cleaning_c2.xlsx"
+
+* (3) contraloría panel por ubigeo y año
+*----------------------------------------
+use $data/matrix_c3, clear
+iecodebook template using "$iecodebook\cleaning_c3.xlsx", replace
+iecodebook apply using "$iecodebook\cleaning_c3.xlsx"
+
+* (4) contraloria panel por ubigeo, caso y año
+*----------------------------------------------
+use $data/matrix_c4, clear
+iecodebook template using "$iecodebook\cleaning_c4.xlsx", replace
+iecodebook apply using "$iecodebook\cleaning_c4.xlsx"
