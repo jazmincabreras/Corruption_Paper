@@ -15,6 +15,7 @@ global input "$main\input"
 global data "$main\output\data"
 global extra "$main\extra"
 global varnames "$main\extra\varnames"
+global iecodebook "$main\extra\iecodebook"
 
 *==========================================================================
 * BASE CONTRALORIA: CONSTRUCCIÓN DE CUATRO CASOS DE VARIABLES DEPENDIENTES
@@ -290,44 +291,53 @@ save $input/matrix_renamu_siaf, replace
 /*  variables: 5,702
 observaciones: 22,250  */
 
+
 * (1) contraloría del año inicial del reporte por ubigeo y año
 *--------------------------------------------------------------
 use $input/matrix_renamu_siaf, clear
 merge 1:m ubigeo year using $data/c1
-//drop if _merge != 3
-save $data/matrix_c1, replace
 /*  variables: 5,720
 observaciones: 22,255  */
+drop if _merge != 3
+save $data/matrix_c1, replace
+/*  variables: 5,426
+observaciones: 652  */
 
 
 * (2) contraloría del año inicial del reporte por ubigeo, caso y año
 *--------------------------------------------------------------------
 use $input/matrix_renamu_siaf, clear
 merge 1:m ubigeo year using $data/c2
-//drop if _merge != 3
-save $data/matrix_c2, replace
 /*  variables: 5,721
 observaciones: 22,448  */
+drop if _merge != 3
+save $data/matrix_c2, replace
+/*  variables: 5,427
+observaciones: 845  */
 
 
 * (3) contraloría panel por ubigeo y año
 *----------------------------------------
 use $input/matrix_renamu_siaf, clear
 merge 1:m ubigeo year using $data/c3
-//drop if _merge != 3
-save $data/matrix_c3, replace
 /*  variables: 5,720
 observaciones: 22,257  */
+drop if _merge != 3
+save $data/matrix_c3, replace
+/*  variables: 5,426
+observaciones: 1,290  */
 
 
 * (4) contraloria panel por ubigeo, caso y año
 *----------------------------------------------
 use $input/matrix_renamu_siaf, clear
 merge 1:m ubigeo year using $data/c4
-//drop if _merge != 3
-save $data/matrix_c4, replace
 /*  variables: 5,721
 observaciones: 22,257  */
+drop if _merge != 3
+save $data/matrix_c4, replace
+/*  variables: 5,427
+observaciones: 1,969  */
 
 erase $input/matrix_renamu_siaf.dta
 erase $data/c1.dta
@@ -359,11 +369,7 @@ export excel name varlab using "$varnames/contraloria_variables.xlsx", firstrow(
 ********************************************************************************
 * IETOOLKIT
 ********************************************************************************
-
 ssc install iefieldkit
-
-global iecodebook "$main\extra\iecodebook"
-
 
 * (1) contraloría del año inicial del reporte por ubigeo y año
 *--------------------------------------------------------------
