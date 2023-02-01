@@ -52,3 +52,15 @@ INEI (2020) “Estimación de la vulnerabilidad económica a la pobreza monetari
 Ferraz, C., & Finan, F. (2008). Exposing corrupt politicians: the effects of Brazil's publicly released audits on electoral outcomes. The Quarterly journal of economics, 123(2), 703-745.
 
 Olken, B. A., & Pande, R. (2012). Corruption in developing countries. Annu. Rev. Econ., 4(1), 479-509.
+
+
+
+
+
+CORRUPCIÓN INTENSA: contraloría del año inicial del reporte por ubigeo y año
+CORUPCIÓN AMPLIA: contraloría del año inicial del reporte por ubigeo y año
+PERSONAS/CORRUPCIÓN INTENSA: contraloría del año inicial del reporte por ubigeo y año
+PERSONAS/CORUPCIÓN AMPLIA: contraloría del año inicial del reporte por ubigeo y año
+MONTO/CORRUPCIÓN INTENSA: contraloría del año inicial del reporte por ubigeo y año
+MONTO/CORUPCIÓN AMPLIA: contraloría del año inicial del reporte por ubigeo y año
+
