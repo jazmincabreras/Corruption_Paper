@@ -41,7 +41,7 @@ tostring corrup_intensa, gen(str_corrup_intensa) force
 encode str_corrup_intensa, gen(id_corrup_intensa)
 drop corrup_intensa str_corrup_intensa
 rename id_corrup_intensa corrup_intensa
-label var corrup_intensa "Corrupción intensa"
+label var corrup_intensa "CORRUPCIÓN INTENSA"
 replace corrup_intensa = 0 if corrup_intensa == 1
 replace corrup_intensa = 1 if corrup_intensa == 2
 label define frec1 1 "Sí" 0 "No"
@@ -57,7 +57,7 @@ tostring corrup_amplia, gen(str_corrup_amplia) force
 encode str_corrup_amplia, gen(id_corrup_amplia)
 drop corrup_amplia str_corrup_amplia
 rename id_corrup_amplia corrup_amplia
-label var corrup_amplia "Corrupción amplia"
+label var corrup_amplia "CORRUPCIÓN AMPLIA"
 replace corrup_amplia = 0 if corrup_amplia == 1
 replace corrup_amplia = 1 if corrup_amplia == 2
 label list frec1
@@ -65,24 +65,44 @@ label values corrup_amplia frec1
 codebook corrup_amplia
 
 * variable "prueba", que determina si una observacion es AC (Auditoria de cumplimiento) o SCEHPI (Servicio de Control Específico a Hechos de Presunta Irregularidad)
-gen prueba = 1 if (monto_auditado!= . & monto_examinado!= . & monto_objeto_servicio == .)
-replace prueba = 2 if (monto_auditado== . & monto_examinado== . & monto_objeto_servicio!= .)
+gen prueba = 1 if (monto_auditado != 0 & monto_examinado != 0 & monto_objeto_servicio == 0.00)
+replace prueba = 2 if (monto_auditado == 0 & monto_examinado == 0 & monto_objeto_servicio != 0.00)
+tostring prueba, gen(str_prueba) force
+encode str_prueba, gen(id_prueba)
+drop prueba str_prueba
+rename id_prueba prueba
+replace prueba = . if prueba == 1
+replace prueba = 1 if prueba == 2
+replace prueba = 2 if prueba == 3
+label define frec2 1 "AC" 2 "SCEHPI"
+label list frec2
+label values prueba frec2
 codebook prueba
-sort prueba
-
-* variable "monto"
-gen monto = monto_auditado if prueba == 1
-replace monto = monto_objeto_servicio if prueba == 2
 
 * variable "monto_"
 gen monto_ = monto_auditado + monto_objeto_servicio
+label var monto_ "SUMA DE MONTOS: AUDITADO Y OBJETO"
 
+* variable interactiva: monto auditado según prueba
+gen monto = monto_auditado if prueba == 1
+replace monto = monto_objeto_servicio if prueba == 2
+label var monto "MONTO AUDITADO SEGÚN PRUEBA"
+
+* variables interactivas: número de personas según tipo de corrupción
 gen per_corrup1 = penal * corrup_intensa
 gen per_corrup2 = civil * corrup_amplia
+label var per_corrup1 "NÚMERO DE PERSONAS SEGÚN CORRUPCIÓN INTENSA"
+label var per_corrup2 "NÚMERO DE PERSONAS SEGÚN CORRUPCIÓN AMPLIA"
+
+* variables interactivas monto según tipo de corrupción
 gen monto_corrup1 = monto * corrup_intensa
 gen monto_corrup2 = monto * corrup_amplia
+label var monto_corrup1 "MONTO SEGÚN CORRUPCIÓN INTENSA"
+label var monto_corrup2 "MONTO SEGÚN CORRUPCIÓN AMPLIA"
 
-save "$data/c1", replace
+save $data/c1, replace
+/*  variables: 19
+observaciones: 657  */
 
 
 * (2) contraloría del año inicial del reporte por ubigeo, caso y año
@@ -104,7 +124,7 @@ tostring corrup_intensa, gen(str_corrup_intensa) force
 encode str_corrup_intensa, gen(id_corrup_intensa)
 drop corrup_intensa str_corrup_intensa
 rename id_corrup_intensa corrup_intensa
-label var corrup_intensa "Corrupción intensa"
+label var corrup_intensa "CORRUPCIÓN INTENSA"
 replace corrup_intensa = 0 if corrup_intensa == 1
 replace corrup_intensa = 1 if corrup_intensa == 2
 label define frec1 1 "Sí" 0 "No"
@@ -120,7 +140,7 @@ tostring corrup_amplia, gen(str_corrup_amplia) force
 encode str_corrup_amplia, gen(id_corrup_amplia)
 drop corrup_amplia str_corrup_amplia
 rename id_corrup_amplia corrup_amplia
-label var corrup_amplia "Corrupción amplia"
+label var corrup_amplia "CORRUPCIÓN AMPLIA"
 replace corrup_amplia = 0 if corrup_amplia == 1
 replace corrup_amplia = 1 if corrup_amplia == 2
 label list frec1
@@ -128,24 +148,44 @@ label values corrup_amplia frec1
 codebook corrup_amplia
 
 * variable "prueba", que determina si una observacion es AC (Auditoria de cumplimiento) o SCEHPI (Servicio de Control Específico a Hechos de Presunta Irregularidad)
-gen prueba = 1 if (monto_auditado!= . & monto_examinado!= . & monto_objeto_servicio == .)
-replace prueba = 2 if (monto_auditado== . & monto_examinado== . & monto_objeto_servicio!= .)
+gen prueba = 1 if (monto_auditado != 0 & monto_examinado != 0 & monto_objeto_servicio == 0.00)
+replace prueba = 2 if (monto_auditado == 0 & monto_examinado == 0 & monto_objeto_servicio != 0.00)
+tostring prueba, gen(str_prueba) force
+encode str_prueba, gen(id_prueba)
+drop prueba str_prueba
+rename id_prueba prueba
+replace prueba = . if prueba == 1
+replace prueba = 1 if prueba == 2
+replace prueba = 2 if prueba == 3
+label define frec2 1 "AC" 2 "SCEHPI"
+label list frec2
+label values prueba frec2
 codebook prueba
-sort prueba
-
-* variable "monto"
-gen monto = monto_auditado if prueba == 1
-replace monto = monto_objeto_servicio if prueba == 2
 
 * variable "monto_"
 gen monto_ = monto_auditado + monto_objeto_servicio
+label var monto_ "SUMA DE MONTOS: AUDITADO Y OBJETO"
 
+* variable interactiva: monto auditado según prueba
+gen monto = monto_auditado if prueba == 1
+replace monto = monto_objeto_servicio if prueba == 2
+label var monto "MONTO AUDITADO SEGÚN PRUEBA"
+
+* variables interactivas: número de personas según tipo de corrupción
 gen per_corrup1 = penal * corrup_intensa
 gen per_corrup2 = civil * corrup_amplia
+label var per_corrup1 "NÚMERO DE PERSONAS SEGÚN CORRUPCIÓN INTENSA"
+label var per_corrup2 "NÚMERO DE PERSONAS SEGÚN CORRUPCIÓN AMPLIA"
+
+* variables interactivas monto según tipo de corrupción
 gen monto_corrup1 = monto * corrup_intensa
 gen monto_corrup2 = monto * corrup_amplia
+label var monto_corrup1 "MONTO SEGÚN CORRUPCIÓN INTENSA"
+label var monto_corrup2 "MONTO SEGÚN CORRUPCIÓN AMPLIA"
 
-save "$data/c2", replace
+save $data/c2, replace
+/*  variables: 20
+observaciones: 850  */
 
 
 * (3) contraloría panel por ubigeo y año
@@ -166,7 +206,7 @@ tostring corrup_intensa, gen(str_corrup_intensa) force
 encode str_corrup_intensa, gen(id_corrup_intensa)
 drop corrup_intensa str_corrup_intensa
 rename id_corrup_intensa corrup_intensa
-label var corrup_intensa "Corrupción intensa"
+label var corrup_intensa "CORRUPCIÓN INTENSA"
 replace corrup_intensa = 0 if corrup_intensa == 1
 replace corrup_intensa = 1 if corrup_intensa == 2
 label define frec1 1 "Sí" 0 "No"
@@ -182,7 +222,7 @@ tostring corrup_amplia, gen(str_corrup_amplia) force
 encode str_corrup_amplia, gen(id_corrup_amplia)
 drop corrup_amplia str_corrup_amplia
 rename id_corrup_amplia corrup_amplia
-label var corrup_amplia "Corrupción amplia"
+label var corrup_amplia "CORRUPCIÓN AMPLIA"
 replace corrup_amplia = 0 if corrup_amplia == 1
 replace corrup_amplia = 1 if corrup_amplia == 2
 label list frec1
@@ -190,24 +230,44 @@ label values corrup_amplia frec1
 codebook corrup_amplia
 
 * variable "prueba", que determina si una observacion es AC (Auditoria de cumplimiento) o SCEHPI (Servicio de Control Específico a Hechos de Presunta Irregularidad)
-gen prueba = 1 if (monto_auditado!= . & monto_examinado!= . & monto_objeto_servicio == .)
-replace prueba = 2 if (monto_auditado== . & monto_examinado== . & monto_objeto_servicio!= .)
+gen prueba = 1 if (monto_auditado != 0 & monto_examinado != 0 & monto_objeto_servicio == 0.00)
+replace prueba = 2 if (monto_auditado == 0 & monto_examinado == 0 & monto_objeto_servicio != 0.00)
+tostring prueba, gen(str_prueba) force
+encode str_prueba, gen(id_prueba)
+drop prueba str_prueba
+rename id_prueba prueba
+replace prueba = . if prueba == 1
+replace prueba = 1 if prueba == 2
+replace prueba = 2 if prueba == 3
+label define frec2 1 "AC" 2 "SCEHPI"
+label list frec2
+label values prueba frec2
 codebook prueba
-sort prueba
-
-* variable "monto"
-gen monto = monto_auditado if prueba == 1
-replace monto = monto_objeto_servicio if prueba == 2
 
 * variable "monto_"
 gen monto_ = monto_auditado + monto_objeto_servicio
+label var monto_ "SUMA DE MONTOS: AUDITADO Y OBJETO"
 
+* variable interactiva: monto auditado según prueba
+gen monto = monto_auditado if prueba == 1
+replace monto = monto_objeto_servicio if prueba == 2
+label var monto "MONTO AUDITADO SEGÚN PRUEBA"
+
+* variables interactivas: número de personas según tipo de corrupción
 gen per_corrup1 = penal * corrup_intensa
 gen per_corrup2 = civil * corrup_amplia
+label var per_corrup1 "NÚMERO DE PERSONAS SEGÚN CORRUPCIÓN INTENSA"
+label var per_corrup2 "NÚMERO DE PERSONAS SEGÚN CORRUPCIÓN AMPLIA"
+
+* variables interactivas monto según tipo de corrupción
 gen monto_corrup1 = monto * corrup_intensa
 gen monto_corrup2 = monto * corrup_amplia
+label var monto_corrup1 "MONTO SEGÚN CORRUPCIÓN INTENSA"
+label var monto_corrup2 "MONTO SEGÚN CORRUPCIÓN AMPLIA"
 
-save "$data/c3", replace
+save $data/c3, replace
+/*  variables: 19
+observaciones: 1,297  */
 
 
 * (4) contraloria panel por ubigeo, caso y año
@@ -234,7 +294,7 @@ tostring corrup_intensa, gen(str_corrup_intensa) force
 encode str_corrup_intensa, gen(id_corrup_intensa)
 drop corrup_intensa str_corrup_intensa
 rename id_corrup_intensa corrup_intensa
-label var corrup_intensa "Corrupción intensa"
+label var corrup_intensa "CORRUPCIÓN INTENSA"
 replace corrup_intensa = 0 if corrup_intensa == 1
 replace corrup_intensa = 1 if corrup_intensa == 2
 label define frec1 1 "Sí" 0 "No"
@@ -250,7 +310,7 @@ tostring corrup_amplia, gen(str_corrup_amplia) force
 encode str_corrup_amplia, gen(id_corrup_amplia)
 drop corrup_amplia str_corrup_amplia
 rename id_corrup_amplia corrup_amplia
-label var corrup_amplia "Corrupción amplia"
+label var corrup_amplia "CORRUPCIÓN AMPLIA"
 replace corrup_amplia = 0 if corrup_amplia == 1
 replace corrup_amplia = 1 if corrup_amplia == 2
 label list frec1
@@ -258,24 +318,45 @@ label values corrup_amplia frec1
 codebook corrup_amplia
 
 * variable "prueba", que determina si una observacion es AC (Auditoria de cumplimiento) o SCEHPI (Servicio de Control Específico a Hechos de Presunta Irregularidad)
-gen prueba = 1 if (monto_auditado_promedio!= . & monto_examinado_promedio!= . & monto_objeto_promedio == .)
-replace prueba = 2 if (monto_auditado_promedio== . & monto_examinado_promedio== . & monto_objeto_promedio!= .)
+gen prueba = 1 if (monto_auditado_promedio != 0 & monto_examinado_promedio != 0 & monto_objeto_promedio == 0.00)
+replace prueba = 2 if (monto_auditado_promedio == 0 & monto_examinado_promedio == 0 & monto_objeto_promedio != 0.00)
+tostring prueba, gen(str_prueba) force
+encode str_prueba, gen(id_prueba)
+drop prueba str_prueba
+rename id_prueba prueba
+label var prueba "PRUEBA"
+replace prueba = . if prueba == 1
+replace prueba = 1 if prueba == 2
+replace prueba = 2 if prueba == 3
+label define frec2 1 "AC" 2 "SCEHPI"
+label list frec2
+label values prueba frec2
 codebook prueba
-sort prueba
-
-* variable "monto"
-gen monto = monto_auditado_promedio if prueba == 1
-replace monto = monto_objeto_promedio if prueba == 2
 
 * variable "monto_"
 gen monto_ = monto_auditado_promedio + monto_objeto_promedio
+label var monto_ "SUMA DE MONTOS: AUDITADO Y OBJETO"
 
+* variable interactiva: monto auditado según prueba
+gen monto = monto_auditado_promedio if prueba == 1
+replace monto = monto_objeto_promedio if prueba == 2
+label var monto "MONTO AUDITADO SEGÚN PRUEBA"
+
+* variables interactivas: número de personas según tipo de corrupción
 gen per_corrup1 = penal * corrup_intensa
 gen per_corrup2 = civil * corrup_amplia
+label var per_corrup1 "NÚMERO DE PERSONAS SEGÚN CORRUPCIÓN INTENSA"
+label var per_corrup2 "NÚMERO DE PERSONAS SEGÚN CORRUPCIÓN AMPLIA"
+
+* variables interactivas monto según tipo de corrupción
 gen monto_corrup1 = monto * corrup_intensa
 gen monto_corrup2 = monto * corrup_amplia
+label var monto_corrup1 "MONTO SEGÚN CORRUPCIÓN INTENSA"
+label var monto_corrup2 "MONTO SEGÚN CORRUPCIÓN AMPLIA"
 
-save "$data/c4", replace
+save $data/c4, replace
+/*  variables: 20
+observaciones: 1,976 */
 
 
 ********************************************************************************
@@ -288,7 +369,7 @@ rename idmunici ubigeo
 merge 1:1 ubigeo year using $input\matrix_siaf
 drop _merge
 save $input/matrix_renamu_siaf, replace
-/*  variables: 5,702
+/*  variables: 5,408
 observaciones: 22,250  */
 
 
@@ -296,11 +377,12 @@ observaciones: 22,250  */
 *--------------------------------------------------------------
 use $input/matrix_renamu_siaf, clear
 merge 1:m ubigeo year using $data/c1
-/*  variables: 5,720
+/*  variables: 5,426
 observaciones: 22,255  */
 drop if _merge != 3
+drop _merge
 save $data/matrix_c1, replace
-/*  variables: 5,426
+/*  variables: 5,425
 observaciones: 652  */
 
 
@@ -308,11 +390,12 @@ observaciones: 652  */
 *--------------------------------------------------------------------
 use $input/matrix_renamu_siaf, clear
 merge 1:m ubigeo year using $data/c2
-/*  variables: 5,721
+/*  variables: 5,427
 observaciones: 22,448  */
 drop if _merge != 3
+drop _merge
 save $data/matrix_c2, replace
-/*  variables: 5,427
+/*  variables: 5,426
 observaciones: 845  */
 
 
@@ -320,11 +403,12 @@ observaciones: 845  */
 *----------------------------------------
 use $input/matrix_renamu_siaf, clear
 merge 1:m ubigeo year using $data/c3
-/*  variables: 5,720
+/*  variables: 5,426
 observaciones: 22,257  */
 drop if _merge != 3
+drop _merge
 save $data/matrix_c3, replace
-/*  variables: 5,426
+/*  variables: 5,425
 observaciones: 1,290  */
 
 
@@ -332,11 +416,12 @@ observaciones: 1,290  */
 *----------------------------------------------
 use $input/matrix_renamu_siaf, clear
 merge 1:m ubigeo year using $data/c4
-/*  variables: 5,721
-observaciones: 22,257  */
-drop if _merge != 3
-save $data/matrix_c4, replace
 /*  variables: 5,427
+observaciones: 22,936  */
+drop if _merge != 3
+drop _merge
+save $data/matrix_c4, replace
+/*  variables: 5,426
 observaciones: 1,969  */
 
 erase $input/matrix_renamu_siaf.dta
