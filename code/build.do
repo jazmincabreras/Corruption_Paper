@@ -93,7 +93,7 @@ observaciones: 657  */
 *--------------------------------------------------------------------
 
 use $input\contraloria_caso, clear
-rename año_in year
+rename año_inicio year
 /*  variables: 12
 observaciones: 849  */
 
