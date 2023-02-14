@@ -24,13 +24,12 @@ global iecodebook "$main\extra\iecodebook"
 * (1) contraloría del año inicial del reporte por ubigeo y año
 *--------------------------------------------------------------
 
-use $input\matrix_datospanel, clear
+use $input\contraloria_caso, clear
 
-collapse (first) ubigeo año_in civil penal admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio, by (doc_name)
-rename año_in year
-collapse (sum) civil penal admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio, by (ubigeo year)
+rename año_inicio year
+collapse (sum) civil penal admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio, by (ubigeo year tipo_control)
 /*  variables: 10
-observaciones: 657  */
+observaciones: 656  */
 
 order ubigeo year penal civil admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio
 
@@ -64,28 +63,13 @@ label list frec1
 label values corrup_amplia frec1
 codebook corrup_amplia
 
-* variable "prueba", que determina si una observacion es AC (Auditoria de cumplimiento) o SCEHPI (Servicio de Control Específico a Hechos de Presunta Irregularidad)
-gen prueba = 1 if (monto_auditado != 0 & monto_examinado != 0 & monto_objeto_servicio == 0.00)
-replace prueba = 2 if (monto_auditado == 0 & monto_examinado == 0 & monto_objeto_servicio != 0.00)
-tostring prueba, gen(str_prueba) force
-encode str_prueba, gen(id_prueba)
-drop prueba str_prueba
-rename id_prueba prueba
-replace prueba = . if prueba == 1
-replace prueba = 1 if prueba == 2
-replace prueba = 2 if prueba == 3
-label define frec2 1 "AC" 2 "SCEHPI"
-label list frec2
-label values prueba frec2
-codebook prueba
-
 * variable "monto_"
 gen monto_ = monto_auditado + monto_objeto_servicio
 label var monto_ "SUMA DE MONTOS: AUDITADO Y OBJETO"
 
 * variable interactiva: monto auditado según prueba
-gen monto = monto_auditado if prueba == 1
-replace monto = monto_objeto_servicio if prueba == 2
+gen monto = monto_auditado if tipo_control == 1
+replace monto = monto_objeto_servicio if tipo_control == 2
 label var monto "MONTO AUDITADO SEGÚN PRUEBA"
 
 * variables interactivas: número de personas según tipo de corrupción
@@ -108,14 +92,14 @@ observaciones: 657  */
 * (2) contraloría del año inicial del reporte por ubigeo, caso y año
 *--------------------------------------------------------------------
 
-use $input\matrix_datospanel, clear
-
-collapse (first) año_in civil penal admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio, by (doc_name ubigeo)
+use $input\contraloria_caso, clear
 rename año_in year
-/*  variables: 11
-observaciones: 850  */
+/*  variables: 12
+observaciones: 849  */
 
-order ubigeo year doc_name penal civil admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio
+drop titulo_asunto objetivo entidad_auditada año_emision unidad_emite año_fin
+
+order ubigeo year doc_name tipo_control penal civil admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio
 
 * variable "corrupción intensa"
 gen corrup_intensa = 1 if penal != 0
@@ -147,28 +131,13 @@ label list frec1
 label values corrup_amplia frec1
 codebook corrup_amplia
 
-* variable "prueba", que determina si una observacion es AC (Auditoria de cumplimiento) o SCEHPI (Servicio de Control Específico a Hechos de Presunta Irregularidad)
-gen prueba = 1 if (monto_auditado != 0 & monto_examinado != 0 & monto_objeto_servicio == 0.00)
-replace prueba = 2 if (monto_auditado == 0 & monto_examinado == 0 & monto_objeto_servicio != 0.00)
-tostring prueba, gen(str_prueba) force
-encode str_prueba, gen(id_prueba)
-drop prueba str_prueba
-rename id_prueba prueba
-replace prueba = . if prueba == 1
-replace prueba = 1 if prueba == 2
-replace prueba = 2 if prueba == 3
-label define frec2 1 "AC" 2 "SCEHPI"
-label list frec2
-label values prueba frec2
-codebook prueba
-
 * variable "monto_"
 gen monto_ = monto_auditado + monto_objeto_servicio
 label var monto_ "SUMA DE MONTOS: AUDITADO Y OBJETO"
 
 * variable interactiva: monto auditado según prueba
-gen monto = monto_auditado if prueba == 1
-replace monto = monto_objeto_servicio if prueba == 2
+gen monto = monto_auditado if tipo_control == 1
+replace monto = monto_objeto_servicio if tipo_control == 2
 label var monto "MONTO AUDITADO SEGÚN PRUEBA"
 
 * variables interactivas: número de personas según tipo de corrupción
@@ -185,17 +154,17 @@ label var monto_corrup2 "MONTO SEGÚN CORRUPCIÓN AMPLIA"
 
 save $data/c2, replace
 /*  variables: 20
-observaciones: 850  */
+observaciones: 849  */
 
 
 * (3) contraloría panel por ubigeo y año
 *----------------------------------------
 
-use $input\matrix_datospanel, clear
-collapse (sum) civil penal admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio, by (ubigeo year)
+use $input\contraloria_panel, clear
+rename año year
+collapse (sum) civil penal admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio, by (ubigeo year tipo_control)
 /*  variables: 10
 observaciones: 1297  */
-*sum o media
 
 order ubigeo year penal civil admin adm_ent adm_pas monto_auditado monto_examinado monto_objeto_servicio
 
@@ -229,28 +198,13 @@ label list frec1
 label values corrup_amplia frec1
 codebook corrup_amplia
 
-* variable "prueba", que determina si una observacion es AC (Auditoria de cumplimiento) o SCEHPI (Servicio de Control Específico a Hechos de Presunta Irregularidad)
-gen prueba = 1 if (monto_auditado != 0 & monto_examinado != 0 & monto_objeto_servicio == 0.00)
-replace prueba = 2 if (monto_auditado == 0 & monto_examinado == 0 & monto_objeto_servicio != 0.00)
-tostring prueba, gen(str_prueba) force
-encode str_prueba, gen(id_prueba)
-drop prueba str_prueba
-rename id_prueba prueba
-replace prueba = . if prueba == 1
-replace prueba = 1 if prueba == 2
-replace prueba = 2 if prueba == 3
-label define frec2 1 "AC" 2 "SCEHPI"
-label list frec2
-label values prueba frec2
-codebook prueba
-
 * variable "monto_"
 gen monto_ = monto_auditado + monto_objeto_servicio
 label var monto_ "SUMA DE MONTOS: AUDITADO Y OBJETO"
 
 * variable interactiva: monto auditado según prueba
-gen monto = monto_auditado if prueba == 1
-replace monto = monto_objeto_servicio if prueba == 2
+gen monto = monto_auditado if tipo_control == 1
+replace monto = monto_objeto_servicio if tipo_control == 2
 label var monto "MONTO AUDITADO SEGÚN PRUEBA"
 
 * variables interactivas: número de personas según tipo de corrupción
@@ -273,7 +227,9 @@ observaciones: 1,297  */
 * (4) contraloria panel por ubigeo, caso y año
 *----------------------------------------------
 
-use $input\matrix_datospanel, clear
+use $input\contraloria_panel, clear
+
+rename año year
 
 gen monto_auditado_promedio = monto_auditado / dif
 gen monto_examinado_promedio = monto_examinado / dif
@@ -281,8 +237,8 @@ gen monto_objeto_promedio = monto_objeto_servicio / dif
 
 drop monto_auditado monto_examinado monto_objeto_servicio
 
-keep ubigeo year doc_name penal civil admin adm_ent adm_pas monto_auditado_promedio monto_examinado_promedio monto_objeto_promedio
-/*  variables: 11
+keep ubigeo year doc_name tipo_control penal civil admin adm_ent adm_pas monto_auditado_promedio monto_examinado_promedio monto_objeto_promedio
+/*  variables: 12
 observaciones: 1976  */
 
 order ubigeo year doc_name penal civil admin adm_ent adm_pas monto_auditado_promedio monto_examinado_promedio monto_objeto_promedio
@@ -317,29 +273,13 @@ label list frec1
 label values corrup_amplia frec1
 codebook corrup_amplia
 
-* variable "prueba", que determina si una observacion es AC (Auditoria de cumplimiento) o SCEHPI (Servicio de Control Específico a Hechos de Presunta Irregularidad)
-gen prueba = 1 if (monto_auditado_promedio != 0 & monto_examinado_promedio != 0 & monto_objeto_promedio == 0.00)
-replace prueba = 2 if (monto_auditado_promedio == 0 & monto_examinado_promedio == 0 & monto_objeto_promedio != 0.00)
-tostring prueba, gen(str_prueba) force
-encode str_prueba, gen(id_prueba)
-drop prueba str_prueba
-rename id_prueba prueba
-label var prueba "PRUEBA"
-replace prueba = . if prueba == 1
-replace prueba = 1 if prueba == 2
-replace prueba = 2 if prueba == 3
-label define frec2 1 "AC" 2 "SCEHPI"
-label list frec2
-label values prueba frec2
-codebook prueba
-
 * variable "monto_"
 gen monto_ = monto_auditado_promedio + monto_objeto_promedio
 label var monto_ "SUMA DE MONTOS: AUDITADO Y OBJETO"
 
 * variable interactiva: monto auditado según prueba
-gen monto = monto_auditado_promedio if prueba == 1
-replace monto = monto_objeto_promedio if prueba == 2
+gen monto = monto_auditado_promedio if tipo_control == 1
+replace monto = monto_objeto_promedio if tipo_control == 2
 label var monto "MONTO AUDITADO SEGÚN PRUEBA"
 
 * variables interactivas: número de personas según tipo de corrupción
@@ -446,7 +386,7 @@ describe, replace
 export excel name varlab using "$varnames/siaf_variables.xlsx", firstrow(variables)
 
 * CONTRALORIA
-use "$input/matrix_datospanel", clear
+use "$input/matrix_contraloria", clear
 describe, replace
 export excel name varlab using "$varnames/contraloria_variables.xlsx", firstrow(variables)
 
