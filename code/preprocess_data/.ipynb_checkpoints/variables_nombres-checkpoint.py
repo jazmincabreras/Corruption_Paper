@@ -18,6 +18,7 @@ no_predictoras_variables = ['ubigeo',
                             'adm_ent',
                             'adm_pas',
                             'monto',
+                            'monto_',
                             '_monto',
                             'prueba',
                             'monto_examinado',
@@ -5460,6 +5461,12 @@ dependientes_variables = ['corrup_intensa',
                           'per_corrup2',
                           'monto_corrup1',
                           'monto_corrup2']
+
+
+dependientes_numericas = [ 'monto_corrup1', 
+                           'monto_corrup2', 
+                           'per_corrup1', 
+                           'per_corrup2' ]
 
 renamu_variables = [var for var in renamu_variables_total if var not in no_predictoras_variables and var not in string_variables]
 

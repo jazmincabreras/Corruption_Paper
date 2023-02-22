@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 from glob import glob
+import os
 import variables_nombres as vn
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.impute import SimpleImputer
@@ -113,6 +114,46 @@ def determinar_dimensiones( dataframes ):
     '''
     for dataframe in dataframes:
         print( dataframe.name, dataframe.shape )
+        
+        
+        
+def generar_tablas_descriptivas( ruta_input, ruta_output ):
+    
+    '''
+    Propósito:
+        - Generar tablas descriptivas para cada una de las bases de datos
+          de un path brindado.
+    '''
+    
+    ruta_de_acceso = glob( ruta_input )
+    lista_bases = []
+    files_name = map( os.path.basename, ruta_de_acceso )
+    files_name = files_name
+    
+    for file_name in files_name:
+        file_name = file_name[ : - 4 ]
+    
+        for i, base in enumerate( ruta_de_acceso ):
+            dataframe = pd.read_csv( base )
+            n_obs = dataframe.shape[ 0 ]
+            desc = dataframe.describe( include = 'all' ).T
+            desc[ 'missing_values_count' ] = n_obs - desc[ 'count' ]
+            desc[ 'missing_values_percentage' ] = round( desc[ 'missing_values_count' ] / n_obs, 2 )
+            desc = desc.sort_values( by = "missing_values_percentage",
+                                     ascending = False )
+
+            fuente = []
+            for index, row in desc.iterrows():
+                if index in vn.siaf_variables: fuente.append( "SIAF" )
+                if index in vn.renamu_variables: fuente.append( "Renamu" )
+                if index not in vn.siaf_variables and index not in vn.renamu_variables: fuente.append( "Other" )
+            desc[ 'fuente' ] = fuente
+            desc = desc[ [ 'missing_values_percentage', 'missing_values_count', 'fuente', 
+                           'count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max' ] ]
+            desc = desc.round( 2 )
+            tables_path = os.path.join( ruta_output, f'descriptive_tables_{ file_name }.xlsx' )
+            desc.to_excel( tables_path )
+        
         
 
 # 2. FILTROS: SELECCIÓN DE VARIABLES
@@ -357,8 +398,17 @@ def imputar_outliers( dataframes, vars, percentil_superior ):
 
 
 
-def transformacion_log( datasets ):
-    '''
+def dividir_variables_negativas( datasets ):
+    for dataset in datasets:
+        variables_negativas = dataset.columns[ ( dataset < 0 ).any() ].tolist()
+        for var in variables_negativas:
+            dataset[ var ] = dataset[ var ] / 1_000_000
+    return datasets
+
+
+
+def transformacion_log(datasets):
+    """
     Propósito:
         - Realizar una transformación logarítmica a las variables
           provenientes de SIAF y a las variables dependientes numéricas.
@@ -370,10 +420,13 @@ def transformacion_log( datasets ):
     Especificaciones:
         - Para evitar que los valores transformados logarítmicamente tomen
           valores negativos, se suma 1 a todos los valores de las variables SIAF.
-    '''
+    """
     for i, dataset in enumerate( datasets ):
-        num_deps = [ "monto" ]
-        log_cols = [ col for col in datasets[i].columns if col in vn.siaf_variables or col in num_deps ]
-        for var in log_cols:
-            datasets[i][var] = np.log( datasets[i][var] + 1 )
+        siaf_vars = [ var for var in datasets[ i ] if var in vn.siaf_variables ]
+        num_deps = [ var for var in datasets[ i ] if var in vn.dependientes_numericas ] 
+        num_vars = siaf_vars + num_deps
+        negative_vars = datasets[ i ].columns[ ( datasets[ i ] < 0 ).any() ].tolist()
+        log_cols = [ var for var in num_vars if var not in negative_vars ]
+        for var in log_cols: 
+            datasets[ i ][ var ] = np.log(datasets[ i ][ var ] + 1)
     return datasets
