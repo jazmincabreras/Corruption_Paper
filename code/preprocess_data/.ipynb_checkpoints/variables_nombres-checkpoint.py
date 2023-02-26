@@ -22,7 +22,10 @@ no_predictoras_variables = ['ubigeo',
                             '_monto',
                             'prueba',
                             'monto_examinado',
-                            'monto_objeto_servicio']
+                            'monto_auditado',
+                            'monto_objeto_servicio',
+                            'tipo_control', 
+                            'dup' ]
 
 string_variables = ['mue_pro_32',
                     'impres_muni_13',

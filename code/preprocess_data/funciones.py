@@ -117,7 +117,45 @@ def determinar_dimensiones( dataframes ):
         
         
         
-def generar_tablas_descriptivas( ruta_input, ruta_output ):
+# def generar_tablas_descriptivas( ruta_input, ruta_output ):
+#     
+    # '''
+    # Propósito:
+        # - Generar tablas descriptivas para cada una de las bases de datos
+          # de un path brindado.
+    # '''
+#     
+    # ruta_de_acceso = glob( ruta_input )
+    # lista_bases = []
+    # files_name = map( os.path.basename, ruta_de_acceso )
+    # files_name = files_name
+#     
+    # for file_name in files_name:
+        # file_name = file_name[ : - 4 ]
+#     
+        # for i, base in enumerate( ruta_de_acceso ):
+            # dataframe = pd.read_csv( base )
+            # n_obs = dataframe.shape[ 0 ]
+            # desc = dataframe.describe( include = 'all' ).T
+            # desc[ 'missing_values_count' ] = n_obs - desc[ 'count' ]
+            # desc[ 'missing_values_percentage' ] = round( desc[ 'missing_values_count' ] / n_obs, 2 )
+            # desc = desc.sort_values( by = "missing_values_percentage",
+                                     # ascending = False )
+# 
+            # fuente = []
+            # for index, row in desc.iterrows():
+                # if index in vn.siaf_variables: fuente.append( "SIAF" )
+                # if index in vn.renamu_variables: fuente.append( "Renamu" )
+                # if index not in vn.siaf_variables and index not in vn.renamu_variables: fuente.append( "Other" )
+            # desc[ 'fuente' ] = fuente
+            # desc = desc[ [ 'missing_values_percentage', 'missing_values_count', 'fuente', 
+                           # 'count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max' ] ]
+            # desc = desc.round( 2 )
+            # tables_path = os.path.join( ruta_output, f'descriptive_tables_{ file_name }.xlsx' )
+            # desc.to_excel( tables_path )
+            
+
+def generar_tablas_descriptivas( bases, filename, ruta_output ):
     
     '''
     Propósito:
@@ -125,34 +163,31 @@ def generar_tablas_descriptivas( ruta_input, ruta_output ):
           de un path brindado.
     '''
     
-    ruta_de_acceso = glob( ruta_input )
-    lista_bases = []
-    files_name = map( os.path.basename, ruta_de_acceso )
-    files_name = files_name
+    export_path = os.path.join( ruta_output, f'{ filename }.xlsx' )
     
-    for file_name in files_name:
-        file_name = file_name[ : - 4 ]
+    writer = pd.ExcelWriter( export_path, engine =  'xlsxwriter' )
     
-        for i, base in enumerate( ruta_de_acceso ):
-            dataframe = pd.read_csv( base )
-            n_obs = dataframe.shape[ 0 ]
-            desc = dataframe.describe( include = 'all' ).T
-            desc[ 'missing_values_count' ] = n_obs - desc[ 'count' ]
-            desc[ 'missing_values_percentage' ] = round( desc[ 'missing_values_count' ] / n_obs, 2 )
-            desc = desc.sort_values( by = "missing_values_percentage",
-                                     ascending = False )
+    for i, base in enumerate( bases ):
+        n_obs = bases[ i ].shape[ 0 ]
+        desc = bases[ i ].describe( include = 'all' ).T
+        desc[ 'missing_values_count' ] = n_obs - desc[ 'count' ]
+        desc[ 'missing_values_percentage' ] = round( desc[ 'missing_values_count' ] / n_obs, 2 )
+        desc = desc.sort_values( by = "missing_values_percentage",
+                                 ascending = False )
 
-            fuente = []
-            for index, row in desc.iterrows():
-                if index in vn.siaf_variables: fuente.append( "SIAF" )
-                if index in vn.renamu_variables: fuente.append( "Renamu" )
-                if index not in vn.siaf_variables and index not in vn.renamu_variables: fuente.append( "Other" )
-            desc[ 'fuente' ] = fuente
-            desc = desc[ [ 'missing_values_percentage', 'missing_values_count', 'fuente', 
-                           'count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max' ] ]
-            desc = desc.round( 2 )
-            tables_path = os.path.join( ruta_output, f'descriptive_tables_{ file_name }.xlsx' )
-            desc.to_excel( tables_path )
+        fuente = []
+        for index, row in desc.iterrows():
+            if index in vn.siaf_variables: fuente.append( "SIAF" )
+            if index in vn.renamu_variables: fuente.append( "Renamu" )
+            if index not in vn.siaf_variables and index not in vn.renamu_variables: fuente.append( "Other" )
+        desc[ 'fuente' ] = fuente
+        
+        desc = desc[ [ 'missing_values_percentage', 'missing_values_count', 'fuente', 
+                       'count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max' ] ]
+        desc = desc.round( 2 )  
+        
+        desc.to_excel( writer, sheet_name = f'caso_{ i + 1 }' )  
+    writer.save()  
         
         
 
@@ -277,7 +312,7 @@ def imputar_i( dataframes, vars, val, dummy = True ):
 
 
 
-def imputar_ii( dataframes, siaf = True, dummy = True ):
+def imputar_ii( dataframe, siaf = True, dummy = True ):
     '''
     Propósito:
         - Imputar con media o moda las bases de datos de la lista
@@ -295,24 +330,23 @@ def imputar_ii( dataframes, siaf = True, dummy = True ):
           seleccionadas, sean provenientes de Renamu o SIAF, con el valor 
           especificado, y con/sin variables dummy de control.
     '''
-    for dataframe in dataframes:
-        for var in dataframe.columns:
-            if dataframe[var].isna().sum() > 0:
-                if siaf:
-                    if var in vn.siaf_variables:
-                        if dummy:
-                            dataframe[ 'im_' + var ] = 0
-                            dataframe.loc[ dataframe[var].isnull(), 'im_' + var ] = 1                                 
-                        media = dataframe[var].mean()
-                        dataframe[var] = dataframe[var].fillna( media )                          
-                elif siaf == False:
-                    if var in vn.renamu_variables:
-                        if dummy:
-                            dataframe[ 'im_' + var ] = 0
-                            dataframe.loc[ dataframe[var].isnull(), 'im_' + var ] = 1  
-                        moda = dataframe[var].mode()
-                        dataframe[var] = dataframe[var].fillna( moda )      
-    return dataframes  
+    for var in dataframe.columns:
+        if dataframe[var].isna().sum() > 0:
+            if siaf:
+                if var in vn.siaf_variables:
+                    if dummy:
+                        dataframe[ 'im_' + var ] = 0
+                        dataframe.loc[ dataframe[var].isnull(), 'im_' + var ] = 1                                 
+                    media = dataframe[var].mean()
+                    dataframe[var] = dataframe[var].fillna( media )                          
+            else:
+                if var in vn.renamu_variables:
+                    if dummy:
+                        dataframe[ 'im_' + var ] = 0
+                        dataframe.loc[ dataframe[var].isnull(), 'im_' + var ] = 1  
+                    moda = dataframe[var].mode()[ 0 ]
+                    dataframe[var] = dataframe[var].fillna( moda )      
+    return dataframe  
 
 
 
