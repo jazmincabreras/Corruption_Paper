@@ -312,7 +312,7 @@ def imputar_i( dataframes, vars, val, dummy = True ):
 
 
 
-def imputar_ii( dataframe, siaf = True, dummy = True ):
+def imputar_ii( dataframe, variables, num = True, dummy = True ):
     '''
     Propósito:
         - Imputar con media o moda las bases de datos de la lista
@@ -332,15 +332,15 @@ def imputar_ii( dataframe, siaf = True, dummy = True ):
     '''
     for var in dataframe.columns:
         if dataframe[var].isna().sum() > 0:
-            if siaf:
-                if var in vn.siaf_variables:
+            if num:
+                if var in variables:
                     if dummy:
                         dataframe[ 'im_' + var ] = 0
                         dataframe.loc[ dataframe[var].isnull(), 'im_' + var ] = 1                                 
                     media = dataframe[var].mean()
                     dataframe[var] = dataframe[var].fillna( media )                          
             else:
-                if var in vn.renamu_variables:
+                if var in variables:
                     if dummy:
                         dataframe[ 'im_' + var ] = 0
                         dataframe.loc[ dataframe[var].isnull(), 'im_' + var ] = 1  
